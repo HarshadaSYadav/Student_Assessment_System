@@ -1,0 +1,32 @@
+/* src/pages/HOD/components/HODReports.css */
+
+.hod-reports {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+  }
+  
+  .hod-reports h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .hod-reports ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .hod-reports li {
+    background-color: #ffffff;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 5px;
+    color: #333;
+  }
+  
+  .hod-reports li:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+  

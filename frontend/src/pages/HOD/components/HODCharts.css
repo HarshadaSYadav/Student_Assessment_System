@@ -1,0 +1,14 @@
+/* src/pages/HOD/components/HODCharts.css */
+
+.hod-charts {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+  }
+  
+  .hod-charts h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  

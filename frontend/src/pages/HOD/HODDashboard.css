@@ -1,0 +1,36 @@
+/* src/pages/HOD/HODDashboard.css */
+
+.hod-dashboard {
+  display: flex;
+  height: 100vh;
+}
+
+.hod-content {
+  margin-left: 200px;  /* Matches the sidebar width */
+  padding: 2rem;
+  width: 100%;
+}
+
+.hod-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.hod-header h1 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.hod-header button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.hod-header button:hover {
+  background-color: #0056b3;
+}

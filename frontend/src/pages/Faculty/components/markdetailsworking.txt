@@ -1,0 +1,467 @@
+import React, { useState } from 'react'; 
+import * as XLSX from 'xlsx';
+import { Chart } from 'react-chartjs-2';
+import './MarksDetails.css';
+
+function MarksDetails() {
+  const [year, setYear] = useState('');
+  const [semester, setSemester] = useState('');
+  const [batch, setBatch] = useState('');
+  const [file, setFile] = useState(null);
+  const [message, setMessage] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [excelPreviewData, setExcelPreviewData] = useState([]);
+  const [excelHeaders, setExcelHeaders] = useState([]);
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [sentNotifications, setSentNotifications] = useState([]);
+
+  // Fetch uploaded files from localStorage
+  const fetchUploadedFiles = () => {
+    if (!year || !semester) {
+      setMessage('Please select both year and semester to view saved files.');
+      return;
+    }
+    const yearData = JSON.parse(localStorage.getItem(year) || '{}');
+    const filesForSemester = yearData[semester] || [];
+    setUploadedFiles(filesForSemester);
+    setMessage(filesForSemester.length === 0 ? 'No files found for the selected year and semester.' : '');
+  };
+
+  // Handle file upload
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+    setMessage('');
+  };
+
+  // Save file to localStorage
+  const saveFile = () => {
+    if (!file || !year || !semester) {
+      setMessage('Please select a file, year, and semester before saving.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64File = e.target.result;
+      const yearData = JSON.parse(localStorage.getItem(year) || '{}');
+      const updatedData = {
+        ...yearData,
+        [semester]: [...(yearData[semester] || []), { name: file.name, data: base64File }],
+      };
+      localStorage.setItem(year, JSON.stringify(updatedData));
+      setMessage(File "${file.name}" saved successfully.);
+      setFile(null);
+      fetchUploadedFiles();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /**
+   * Parses the Excel file to handle your custom structure:
+   *  - A "Subjects" row that lists subject names (AI, DS, DT, CNS, CC).
+   *  - A "Max.Marks" row that we skip.
+   *  - A "PRN. NO" row that marks where real data starts.
+   */
+  const previewSavedFile = (file) => {
+    try {
+      const workbook = XLSX.read(file.data.split(',')[1], { type: 'base64' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      if (!jsonData || jsonData.length === 0) {
+        setMessage('Sheet is empty or invalid.');
+        return;
+      }
+
+      // 1) Find the row that contains "Subjects"
+      const subjectsRowIndex = jsonData.findIndex(
+        row => row && row[0] && row[0].toString().toLowerCase().includes('subjects')
+      );
+
+      // 2) Extract subject names from that row (assuming they start at column 1)
+      let subjects = [];
+      if (subjectsRowIndex !== -1) {
+        // e.g., row might be: ["Subjects", "", "AI", "DS", "DT", "CNS", "CC"]
+        // or ["Subjects", "AI", "DS", "DT", "CNS", "CC"]
+        // So we skip the first cell or two until we see real subject names
+        subjects = jsonData[subjectsRowIndex]
+          .slice(1)              // skip the "Subjects" cell
+          .filter(cell => cell && cell.toString().trim()); // only valid cells
+      }
+
+      // 3) Find the row that contains "PRN. NO" (where real data headers appear)
+      const headerRowIndex = jsonData.findIndex(
+        row => row && row[0] && row[0].toString().toLowerCase().includes('prn')
+      );
+      if (headerRowIndex === -1) {
+        setMessage('Could not find a row with "PRN. NO".');
+        return;
+      }
+
+      // 4) Everything after the "PRN. NO" row is student data
+      const dataRows = jsonData.slice(headerRowIndex + 1);
+
+      // 5) Filter out invalid rows (like blank lines or text lines)
+      //    We only want rows that have a numeric PRN in the first column
+      const studentData = dataRows.filter(row => {
+        if (!row || row.length < 4) return false;
+        // Check if first column is numeric or not empty
+        const firstCell = row[0] && row[0].toString().trim();
+        return firstCell && !isNaN(parseFloat(firstCell));
+      });
+
+      // If no valid data
+      if (studentData.length === 0) {
+        setMessage('No valid student data found in file.');
+        return;
+      }
+
+      // 6) Build a custom header array:
+      //    - "PRN. NO", "Roll No.", "Student Name", then the subject names
+      const customHeaders = ['PRN. NO', 'Roll No.', 'Student Name', ...subjects];
+
+      // 7) Convert each data row to a consistent array:
+      //    - row[0] = PRN
+      //    - row[1] = Roll No.
+      //    - row[2] = Student Name
+      //    - row[3..] = marks for each subject
+      const parsedData = studentData.map(row => {
+        // For safety, parse all subject marks from row[3..(3 + subjects.length)]
+        const marks = row.slice(3, 3 + subjects.length).map(m => parseFloat(m) || 0);
+        return [
+          row[0],      // PRN
+          row[1],      // Roll No.
+          row[2],      // Student Name
+          ...marks     // Subject marks
+        ];
+      });
+
+      // Save the parsed headers and data
+      setExcelHeaders(customHeaders);
+      setExcelPreviewData(parsedData);
+      setExpandedRow(null);
+      setMessage(Loaded ${parsedData.length} student records.);
+    } catch (error) {
+      setMessage('Error parsing file: ' + error.message);
+    }
+  };
+
+  // Delete a saved file from localStorage
+  const deleteFile = (fileName) => {
+    if (!year || !semester) {
+      setMessage('Please select a year and semester to delete files.');
+      return;
+    }
+    const yearData = JSON.parse(localStorage.getItem(year) || '{}');
+    const updatedFiles = (yearData[semester] || []).filter((file) => file.name !== fileName);
+    yearData[semester] = updatedFiles;
+    localStorage.setItem(year, JSON.stringify(yearData));
+    setMessage(File "${fileName}" deleted successfully.);
+    fetchUploadedFiles();
+  };
+
+  // Toggle chart display for a student row
+  const toggleChart = (index) => {
+    setExpandedRow(expandedRow === index ? null : index);
+  };
+
+  // Render pie chart for a student using subject names and marks
+  const renderChart = (studentRow) => {
+    // studentRow = [PRN, RollNo, StudentName, markAI, markDS, markDT, markCNS, markCC, ...]
+    // The first 3 columns are PRN, Roll, Name; the rest are marks
+    const prnNo = studentRow[0];
+    const studentName = studentRow[2];
+
+    // The subject names come from excelHeaders[3..]
+    const subjects = excelHeaders.slice(3);
+    // The marks come from studentRow[3..]
+    const marks = studentRow.slice(3).map(m => (isNaN(m) ? 0 : Number(m)));
+
+    // Calculate overall percentage (assuming each subject is out of 20)
+    const totalMarks = marks.reduce((acc, curr) => acc + curr, 0);
+    const maxMarks = 20 * marks.length;
+    const overallPercentage = (totalMarks / maxMarks) * 100;
+
+    // Prepare data for pie chart: subject names as labels, marks as data
+    const data = {
+      labels: subjects,
+      datasets: [{
+        label: 'Marks',
+        data: marks,
+        backgroundColor: subjects.map(() =>
+          hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)
+        ),
+      }],
+    };
+
+    const options = {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: ${studentName}'s Subject-wise Marks,
+          font: { size: 16 },
+        },
+        tooltip: {
+          callbacks: {
+            label: (tooltipItem) => {
+              const mark = tooltipItem.raw;
+              const perc = ((mark / 20) * 100).toFixed(1);
+              return ${tooltipItem.label}: ${mark} marks (${perc}%);
+            },
+          },
+        },
+      },
+    };
+
+    return (
+      <div className="chart-container">
+        <Chart type="pie" data={data} options={options} />
+        <p>Overall Percentage: {overallPercentage.toFixed(1)}%</p>
+      </div>
+    );
+  };
+
+  // Save student data to backend
+  const saveStudentDataToBackend = async () => {
+    if (!excelPreviewData.length) {
+      alert('No data to save.');
+      return;
+    }
+    try {
+      const results = await Promise.all(
+        excelPreviewData.map(async (row) => {
+          // Ensure the row exists and has at least 3 columns (PRN, Roll, Name)
+          if (!row || row.length < 3) {
+            console.warn('Skipping row due to insufficient data:', row);
+            return null;
+          }
+          
+          // Using array indices: 
+          // PRN is in index 0, Roll No in index 1, Student Name in index 2.
+          const prnNumber = row[0] ? String(row[0]).trim() : '';
+          const rollNo = row[1] ? String(row[1]).trim() : '';
+          const studentName = row[2] ? String(row[2]).trim() : '';
+          
+          if (!prnNumber || !rollNo || !studentName) {
+            console.warn('Skipping row due to missing fields:', row);
+            return null;
+          }
+    
+          // Extract the subjects from the headers starting at index 3
+          const subjects = excelHeaders.slice(3);
+          // Extract marks from the row for as many subjects as there are
+          const marks = row.slice(3, 3 + subjects.length).map(mark => (isNaN(mark) ? 0 : Number(mark)));
+    
+          const studentData = {
+            prnNumber,   // now properly read from row[0]
+            rollNo,
+            studentName,
+            subjects,
+            marks,
+            year,
+            semester,
+            batch,
+          };
+    
+          console.log(Saving data for PRN ${prnNumber}:, studentData);
+    
+          try {
+            const response = await fetch('http://localhost:5000/api/marks', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(studentData),
+            });
+            console.log(Response for PRN ${prnNumber}:, response);
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error(Server error for PRN ${prnNumber}:, errorData);
+              throw new Error(errorData.message || 'Failed to save student data');
+            }
+            console.log(Successfully saved data for PRN ${prnNumber});
+            return { success: true, prn: prnNumber };
+          } catch (error) {
+            console.error(Error saving PRN ${prnNumber}:, error);
+            return { success: false, prn: prnNumber, error: error.message };
+          }
+        })
+      );
+    
+      const successfulSaves = results.filter(r => r && r.success);
+      const failedSaves = results.filter(r => r && !r.success);
+    
+      if (failedSaves.length > 0) {
+        alert(
+          Saved ${successfulSaves.length} records successfully.\n +
+          Failed to save ${failedSaves.length} records:\n +
+          failedSaves.map(f => PRN ${f.prn}: ${f.error}).join('\n')
+        );
+      } else {
+        alert(All ${successfulSaves.length} records saved successfully!);
+      }
+    } catch (error) {
+      console.error('General error:', error);
+      alert('Error saving data: ' + error.message);
+    }
+  };
+  
+
+  // Send notifications to parents
+  const sendSMSNotificationToAll = () => {
+    if (!notificationMessage.trim()) {
+      alert('Please enter a message to send.');
+      return;
+    }
+    const notifications = excelPreviewData.map((row) => ({
+      prnNo: row[0],
+      studentName: row[2],
+      marks: row.slice(3),
+      message: notificationMessage,
+      year,
+      semester,
+      batch,
+      sentAt: new Date().toLocaleString(),
+    }));
+    const existingNotifications = JSON.parse(localStorage.getItem('sentNotifications') || '[]');
+    const updatedNotifications = [...existingNotifications, ...notifications];
+    localStorage.setItem('sentNotifications', JSON.stringify(updatedNotifications));
+    setSentNotifications(updatedNotifications);
+    alert('Notifications sent successfully!');
+  };
+
+  return (
+    <div className="marks-details">
+      <h1>Upload Marks</h1>
+      <div className="form-container">
+        <label>Year:</label>
+        <select value={year} onChange={(e) => setYear(e.target.value)}>
+          <option value="">Select Year</option>
+          <option value="SY">SY</option>
+          <option value="TY">TY</option>
+          <option value="BTech">BTech</option>
+        </select>
+
+        <label>Batch:</label>
+        <select value={batch} onChange={(e) => setBatch(e.target.value)}>
+          <option value="">Select Batch</option>
+          <option value="2023-2024">2023-2024</option>
+          <option value="2024-2025">2024-2025</option>
+        </select>
+
+        <label>Semester:</label>
+        <select value={semester} onChange={(e) => setSemester(e.target.value)}>
+          <option value="">Select Semester</option>
+          <option value="III">III</option>
+          <option value="IV">IV</option>
+          <option value="V">V</option>
+          <option value="VI">VI</option>
+          <option value="VII">VII</option>
+          <option value="VIII">VIII</option>
+        </select>
+
+        <label>Upload Excel File:</label>
+        <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
+
+        <div className="buttons">
+          <button onClick={saveFile} disabled={!file || !year || !semester}>
+            Save File
+          </button>
+          <button onClick={fetchUploadedFiles}>View Saved Files</button>
+          <button onClick={saveStudentDataToBackend}>Save to Backend</button>
+        </div>
+      </div>
+
+      {message && <p className="message">{message}</p>}
+
+      {/* Uploaded Files Table */}
+      {uploadedFiles.length > 0 && (
+        <div className="uploaded-files">
+          <h2>Saved Files for Year: {year}, Semester: {semester}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uploadedFiles.map((file, index) => (
+                <tr key={index}>
+                  <td>{file.name}</td>
+                  <td>
+                    <button onClick={() => previewSavedFile(file)}>Preview</button>
+                    <button onClick={() => deleteFile(file.name)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Student Data Table */}
+      {excelPreviewData.length > 0 && (
+        <div className="excel-preview">
+          <h2>Student Data ({excelPreviewData.length} students)</h2>
+          <table className="student-table">
+            <thead>
+              <tr>
+                {excelHeaders.map((header, i) => (
+                  <th key={i}>{header}</th>
+                ))}
+                {/* The last column: Action (View Chart) */}
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {excelPreviewData.map((row, index) => {
+                // row: [ PRN, RollNo, StudentName, ...subjectMarks ]
+                if (!row || row.length < 3) return null;
+
+                return (
+                  <React.Fragment key={${row[0]}-${index}}>
+                    <tr>
+                      {row.map((cell, i) => (
+                        <td key={i}>{cell}</td>
+                      ))}
+                      <td>
+                        <button
+                          onClick={() => toggleChart(index)}
+                          className="performance-btn"
+                        >
+                          {expandedRow === index ? 'Hide' : 'View'} Performance
+                        </button>
+                      </td>
+                    </tr>
+                    {expandedRow === index && (
+                      <tr className="chart-row">
+                        {/* span all columns plus the Action column */}
+                        <td colSpan={row.length + 1}>
+                          {renderChart(row)}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Notification Section */}
+      <div className="notification-section">
+        <h2>Send SMS Notifications to Parents</h2>
+        <textarea
+          value={notificationMessage}
+          onChange={(e) => setNotificationMessage(e.target.value)}
+          placeholder="Enter notification message"
+        />
+        <button onClick={sendSMSNotificationToAll}>Send Notifications</button>
+      </div>
+    </div>
+  );
+}
+
+export default MarksDetails;

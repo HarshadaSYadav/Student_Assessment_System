@@ -1,0 +1,95 @@
+/* Styles for the Notification Page */
+.notification {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Button styles for toggling between marks and attendance notifications */
+.toggle-buttons {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.toggle-buttons button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin: 0 10px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.toggle-buttons button:hover {
+  background-color: #0056b3;
+}
+
+.toggle-buttons button.active {
+  background-color: #28a745;
+}
+
+.toggle-buttons button.active:hover {
+  background-color: #218838;
+}
+
+/* Styles for the filter section */
+.filters {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.filters label {
+  font-weight: bold;
+}
+
+.filters select {
+  padding: 5px 10px;
+  margin-left: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Table Styles for displaying notifications */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Empty state when no notifications are available */
+p {
+  text-align: center;
+  font-size: 18px;
+  color: #777;
+}
+

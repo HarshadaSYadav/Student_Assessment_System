@@ -1,0 +1,147 @@
+/* Global styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f7fb;
+  display: flex;
+  flex-direction: row;
+  overflow-x: hidden;
+}
+
+
+
+/* Main content styling */
+.main-content {
+  margin: left 20px; /* Same width as the sidebar */
+  padding: 320px;
+  width: calc(200% - 150px); /* Adjust width to account for sidebar */
+  background-color: #f4f7fb;
+  min-height: 100vh;
+  box-sizing: border-box;
+  transition: margin-left 0.3s ease; /* Smooth transition when sidebar changes */
+}
+
+/* Performance view styling */
+.performance-view {
+  padding: 280px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.performance-view h3 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.performance-chart {
+  display: flex
+  ;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.performance-chart p {
+  font-size: 18px;
+  font-weight: bold;
+  color: #27ae60;
+  margin-top: 10px;
+}
+
+.performance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.performance-table th,
+.performance-table td {
+  border: 1px solid #e1e1e1;
+  padding: 10px;
+  text-align: center;
+}
+
+.performance-table th {
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+}
+
+.performance-table td {
+  background-color: #ecf0f1;
+}
+
+.performance-table tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+.performance-table tr:hover td {
+  background-color: #e0e0e0;
+}
+
+.performance-table td:first-child {
+  font-weight: bold;
+}
+
+.performance-table td {
+  font-size: 14px;
+  color: #333;
+}
+
+.performance-table td.no-marks {
+  color: #e74c3c;
+}
+
+.performance-table td[colspan="5"] {
+  text-align: center;
+  font-size: 16px;
+  color: #e74c3c;
+  background-color: #ecf0f1;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .main-content {
+    margin-left: 800px;
+    width: calc(100% - 200px);
+  }
+
+  .performance-table th,
+  .performance-table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .performance-chart p {
+    font-size: 16px;
+  }
+}
+
+@media (max-width:576px) {
+  .sidebar {
+    position: absolute;
+    width: 150%;
+    height: auto;
+    top: 0;
+    left: 0;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .performance-table th,
+  .performance-table td {
+    font-size: 10px;
+    padding: 6px;
+  }
+}

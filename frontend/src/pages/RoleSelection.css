@@ -1,0 +1,34 @@
+/* src/pages/RoleSelection/RoleSelection.css */
+
+.role-selection {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.role-selection h2 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.role-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.role-button {
+  padding: 15px 30px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.role-button:hover {
+  background-color: #0056b3;
+}

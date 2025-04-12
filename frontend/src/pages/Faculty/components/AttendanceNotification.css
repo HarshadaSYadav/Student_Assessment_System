@@ -1,0 +1,41 @@
+/* Style for Delete Selected Notifications button */
+.delete-notification-button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 10px 0;
+  }
+  
+  .delete-notification-button:hover {
+    background-color: #c0392b;
+  }
+  
+  /* Table Styling */
+  .notification-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .notification-table th, .notification-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .notification-table th {
+    background-color: #f2f2f2;
+  }
+  
+  .notification-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .notification-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  

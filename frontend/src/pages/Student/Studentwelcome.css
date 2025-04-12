@@ -1,0 +1,117 @@
+/* Container for the student landing page */
+.student-landing-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f4f7fb;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* Heading style */
+  .student-landing-page h1 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  
+  /* Subheading text */
+  .student-landing-page p {
+    font-size: 18px;
+    color: #34495e;
+    text-align: center;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+  
+  /* Button container */
+  .student-landing-page .buttons {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+  }
+  
+  /* Style for buttons */
+  .student-landing-page .buttons button {
+    font-size: 16px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-weight: 600;
+    width: 200px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Sign Up button */
+  .student-landing-page .buttons .btn-primary {
+    background-color: #dd299e;
+    color: #fff;
+    border: 2px solid #dd299e;
+  }
+  
+  .student-landing-page .buttons .btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Sign In button */
+  .student-landing-page .buttons .btn-secondary {
+    background-color: #2ecc71;
+    color: #fff;
+    border: 2px solid #2ecc71;
+  }
+  
+  .student-landing-page .buttons .btn-secondary:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    .student-landing-page h1 {
+      font-size: 36px;
+    }
+  
+    .student-landing-page p {
+      font-size: 16px;
+    }
+  
+    .student-landing-page .buttons button {
+      font-size: 14px;
+      padding: 12px 20px;
+      width: 180px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .student-landing-page h1 {
+      font-size: 28px;
+    }
+  
+    .student-landing-page p {
+      font-size: 14px;
+    }
+  
+    .student-landing-page .buttons {
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .student-landing-page .buttons button {
+      width: 80%;
+      margin-bottom: 10px;
+    }
+  }
+  
